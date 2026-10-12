@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>إدارة المنتجات | بساط</title>
+<link rel="icon" href="../assets/logo-basat.jpg">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
+:root{--n:#17213f;--g:#d4ad2d;--muted:#737787;--line:#e6e1d5}
+*{box-sizing:border-box}
+body{margin:0;font-family:Cairo,Tahoma,Arial,sans-serif;background:#f7f3e9;color:#202742;line-height:1.7}
+header{background:var(--n);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:5}
+header img{width:40px;height:40px;border-radius:50%;object-fit:cover}
+header b{font-size:1.1rem}header a{margin-inline-start:auto;color:#ebcc70;text-decoration:none;font-size:.9rem;font-weight:700}
+main{max-width:640px;margin:auto;padding:16px}
+.box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+h2{margin:0 0 12px;font-size:1.15rem;color:var(--n)}
+label{display:block;font-weight:700;margin:12px 0 6px}
+input[type=text],input[type=password],textarea{width:100%;font:inherit;font-size:16px;padding:12px;border:1px solid #cfcbbf;border-radius:10px;background:#fff}
+textarea{min-height:120px;resize:vertical}
+.pick{display:flex;gap:10px;flex-wrap:wrap}
+.pick label{margin:0;flex:1;min-width:140px;text-align:center;padding:14px;border:2px dashed #cdbb85;border-radius:12px;background:#fbf8f1;cursor:pointer;font-weight:700;color:var(--n)}
+.pick input{display:none}
+#preview{display:none;width:100%;max-height:320px;object-fit:contain;border-radius:10px;margin-top:12px;background:#eee}
+button{font:inherit;font-weight:800;border:0;border-radius:10px;padding:13px 18px;cursor:pointer}
+.primary{width:100%;background:var(--g);color:var(--n);font-size:1.05rem;margin-top:18px}
+.primary:disabled{opacity:.6}
+.ghost{background:#eef0f5;color:var(--n)}
+.danger{background:#fde8e8;color:#a02020;padding:8px 12px;font-size:.85rem}
+.msg{margin-top:12px;padding:10px 12px;border-radius:10px;display:none;font-weight:600}
+.msg.ok{display:block;background:#e6f6ec;color:#17643a}.msg.err{display:block;background:#fde8e8;color:#a02020}.msg.info{display:block;background:#eef0f5;color:var(--n)}
+.hint{color:var(--muted);font-size:.85rem;margin:6px 0 0}
+.item{display:flex;gap:12px;align-items:center;padding:10px 0;border-top:1px solid #eee}
+.item:first-child{border-top:0}
+.item img{width:64px;height:64px;object-fit:cover;border-radius:8px;background:#eee;flex:none}
+.item div{flex:1;min-width:0}.item b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item small{color:var(--muted)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<header><img src="../assets/logo-basat.jpg" alt=""><b>إدارة المنتجات — بساط</b><a href="../">عرض الموقع ↗</a></header>
+<main>
+
+<section class="box" id="tokenBox">
+  <h2>ربط الحساب</h2>
+  <label for="token">مفتاح GitHub (Token)</label>
+  <input type="password" id="token" autocomplete="off" placeholder="github_pat_... أو ghp_...">
+  <p class="hint">يُحفظ على هذا الجهاز فقط ولا يُرفع إلى الموقع.</p>
+  <div class="row" style="margin-top:10px"><button class="ghost" id="saveToken">حفظ</button><button class="ghost" id="clearToken">حذف المفتاح من الجهاز</button></div>
+  <div class="msg" id="tokenMsg"></div>
+</section>
+
+<section class="box">
+  <h2>إضافة منتج</h2>
+  <form id="form">
+    <label for="name">اسم المنتج</label>
+    <input type="text" id="name" required maxlength="120" placeholder="مثال: سجاد ممر مورد">
+    <label>صورة المنتج</label>
+    <div class="pick">
+      <label>📷 التقاط صورة<input type="file" id="cam" accept="image/*" capture="environment"></label>
+      <label>🖼️ من معرض الصور<input type="file" id="gal" accept="image/*"></label>
+    </div>
+    <img id="preview" alt="معاينة الصورة">
+    <label for="desc">وصف المنتج</label>
+    <textarea id="desc" required maxlength="1500" placeholder="وصف مختصر للمنتج"></textarea>
+    <button class="primary" type="submit" id="submit">إضافة المنتج</button>
+    <div class="msg" id="msg"></div>
+  </form>
+</section>
+
+<section class="box">
+  <h2>المنتجات المضافة</h2>
+  <div id="list"><p class="hint">أدخل المفتاح لعرض المنتجات.</p></div>
+</section>
+
+</main>
+<script>
+const OWNER='hamad1988', REPO='besat', BRANCH='main';
+const API='https://api.github.com/repos/'+OWNER+'/'+REPO;
+const $=id=>document.getElementById(id);
+let imageBlob=null, products=[];
+
+/* ---------- token (stored on this device only) ---------- */
+function getToken(){try{return localStorage.getItem('basat_token')||''}catch(e){return window._tk||''}}
+function setToken(t){try{t?localStorage.setItem('basat_token',t):localStorage.removeItem('basat_token')}catch(e){window._tk=t}}
+function show(el,type,text){el.className='msg '+type;el.textContent=text}
+$('token').value=getToken();
+$('saveToken').onclick=async()=>{setToken($('token').value.trim());await checkToken()};
+$('clearToken').onclick=()=>{setToken('');$('token').value='';show($('tokenMsg'),'info','تم حذف المفتاح من هذا الجهاز.')};
+
+async function gh(path,opt={}){
+  const t=getToken(); if(!t) throw new Error('أدخل مفتاح GitHub أولاً.');
+  const r=await fetch(API+path,{...opt,cache:'no-store',headers:{'Authorization':'Bearer '+t,'Accept':'application/vnd.github+json','Content-Type':'application/json'}});
+  if(!r.ok){const b=await r.json().catch(()=>({}));const e=new Error(b.message||('HTTP '+r.status));e.status=r.status;throw e}
+  return r.status===204?null:r.json();
+}
+async function checkToken(){
+  if(!getToken()){show($('tokenMsg'),'info','لم يُحفظ مفتاح بعد.');return}
+  try{const repo=await gh('');if(!repo.permissions||!repo.permissions.push)throw new Error('المفتاح لا يملك صلاحية الكتابة على المستودع.');
+    show($('tokenMsg'),'ok','تم الربط بنجاح ✓');await loadProducts();}
+  catch(e){show($('tokenMsg'),'err',e.status===401?'المفتاح غير صالح أو منتهي.':e.message)}
+}
+
+/* ---------- read current files from the latest commit ---------- */
+const dec=b64=>new TextDecoder().decode(Uint8Array.from(atob(b64.replace(/\n/g,'')),c=>c.charCodeAt(0)));
+async function readFile(path,ref){const f=await gh('/contents/'+path+'?ref='+ref);return dec(f.content)}
+async function headState(){
+  const ref=await gh('/git/ref/heads/'+BRANCH);const sha=ref.object.sha;
+  const commit=await gh('/git/commits/'+sha);
+  const list=JSON.parse(await readFile('products.json',sha));
+  const html=await readFile('index.html',sha);
+  return {sha,tree:commit.tree.sha,list,html};
+}
+async function loadProducts(){
+  try{const s=await headState();products=s.list;renderList()}catch(e){$('list').innerHTML='';const p=document.createElement('p');p.className='hint';p.textContent='تعذر تحميل المنتجات: '+e.message;$('list').append(p)}
+}
+
+/* ---------- homepage section generator ---------- */
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function buildHtml(html,list){
+  const nav=list.length?'<a href="#latest">آخر أعمالنا</a>':'';
+  let sec='';
+  if(list.length){
+    sec='<section class="section works-section" id="latest"><div class="heading"><div><p class="eyebrow">جديدنا</p><h2>آخر أعمالنا</h2></div><p>أحدث المنتجات والأعمال المضافة من بساط للأثاث والمفروشات.</p></div><div class="works">'+
+      list.map(p=>'<figure class="work"><a href="'+esc(p.image)+'" target="_blank" rel="noopener"><img loading="lazy" src="'+esc(p.image)+'" alt="'+esc(p.name)+'" width="'+(p.w||1200)+'" height="'+(p.h||900)+'"></a><figcaption><h3>'+esc(p.name)+'</h3><p>'+esc(p.desc)+'</p></figcaption></figure>').join('')+
+      '</div></section>';
+  }
+  const rep=(h,tag,content)=>{const a='<!--'+tag+':START-->',b='<!--'+tag+':END-->';const i=h.indexOf(a),j=h.indexOf(b);if(i<0||j<0)throw new Error('علامات القسم غير موجودة في index.html');return h.slice(0,i+a.length)+content+h.slice(j)};
+  return rep(rep(html,'LATEST-NAV',nav),'LATEST',sec);
+}
+
+/* ---------- one atomic commit: image + products.json + index.html ---------- */
+async function commit(message,mutate){
+  for(let attempt=0;attempt<3;attempt++){
+    const s=await headState();
+    const {list,files}=await mutate(s.list);
+    const entries=[...files];
+    entries.push({path:'products.json',mode:'100644',type:'blob',content:JSON.stringify(list,null,2)+'\n'});
+    entries.push({path:'index.html',mode:'100644',type:'blob',content:buildHtml(s.html,list)});
+    const tree=await gh('/git/trees',{method:'POST',body:JSON.stringify({base_tree:s.tree,tree:entries})});
+    const c=await gh('/git/commits',{method:'POST',body:JSON.stringify({message,tree:tree.sha,parents:[s.sha]})});
+    try{await gh('/git/refs/heads/'+BRANCH,{method:'PATCH',body:JSON.stringify({sha:c.sha})});return list}
+    catch(e){if(e.status!==422||attempt===2)throw e}
+  }
+}
+
+/* ---------- image: resize & compress on the phone ---------- */
+function loadImg(file){return new Promise((res,rej)=>{const u=URL.createObjectURL(file);const i=new Image();i.onload=()=>res(i);i.onerror=()=>rej(new Error('تعذر قراءة الصورة، جرّب صورة أخرى.'));i.src=u})}
+async function compress(file){
+  const img=await loadImg(file);const max=1600;let w=img.naturalWidth,h=img.naturalHeight;
+  if(Math.max(w,h)>max){const k=max/Math.max(w,h);w=Math.round(w*k);h=Math.round(h*k)}
+  const cv=document.createElement('canvas');cv.width=w;cv.height=h;const ctx=cv.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);ctx.drawImage(img,0,0,w,h);
+  const blob=await new Promise(r=>cv.toBlob(r,'image/jpeg',0.82));return {blob,w,h};
+}
+const toB64=blob=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(',')[1]);r.onerror=rej;r.readAsDataURL(blob)});
+
+function onPick(e){const f=e.target.files[0];if(!f)return;compress(f).then(x=>{imageBlob=x;const p=$('preview');p.src=URL.createObjectURL(x.blob);p.style.display='block'}).catch(err=>show($('msg'),'err',err.message));e.target.value=''}
+$('cam').onchange=onPick;$('gal').onchange=onPick;
+
+$('form').onsubmit=async e=>{
+  e.preventDefault();
+  const name=$('name').value.trim(),desc=$('desc').value.trim();
+  if(!name||!desc)return show($('msg'),'err','أكمل اسم المنتج والوصف.');
+  if(!imageBlob)return show($('msg'),'err','اختر صورة المنتج.');
+  $('submit').disabled=true;show($('msg'),'info','جارٍ رفع الصورة وحفظ المنتج…');
+  try{
+    const id=Date.now().toString(36);const path='assets/works/'+id+'.jpg';
+    const blob=await gh('/git/blobs',{method:'POST',body:JSON.stringify({content:await toB64(imageBlob.blob),encoding:'base64'})});
+    products=await commit('إضافة منتج: '+name,async list=>({
+      list:[{id,name,desc,image:path,w:imageBlob.w,h:imageBlob.h,date:new Date().toISOString().slice(0,10)},...list.filter(p=>p.id!==id)],
+      files:[{path,mode:'100644',type:'blob',sha:blob.sha}]
+    }));
+    renderList();$('form').reset();imageBlob=null;$('preview').style.display='none';
+    show($('msg'),'ok','تمت إضافة المنتج ✓ سيظهر في الصفحة الرئيسية خلال دقيقة إلى دقيقتين.');
+  }catch(err){show($('msg'),'err','لم تتم الإضافة: '+err.message)}
+  finally{$('submit').disabled=false}
+};
+
+/* ---------- list & delete ---------- */
+function renderList(){
+  const box=$('list');box.innerHTML='';
+  if(!products.length){box.innerHTML='<p class="hint">لا توجد منتجات بعد.</p>';return}
+  products.forEach(p=>{
+    const row=document.createElement('div');row.className='item';
+    const im=document.createElement('img');im.src='../'+p.image+'?v='+p.id;im.alt='';
+    const d=document.createElement('div');const b=document.createElement('b');b.textContent=p.name;const s=document.createElement('small');s.textContent=p.date||'';d.append(b,s);
+    const del=document.createElement('button');del.className='danger';del.textContent='حذف';
+    del.onclick=async()=>{if(!confirm('حذف «'+p.name+'» من الموقع؟'))return;del.disabled=true;
+      try{products=await commit('حذف منتج: '+p.name,async list=>({list:list.filter(x=>x.id!==p.id),files:[{path:p.image,mode:'100644',type:'blob',sha:null}]}));renderList()}
+      catch(err){alert('تعذر الحذف: '+err.message);del.disabled=false}};
+    row.append(im,d,del);box.append(row);
+  });
+}
+checkToken();
+</script>
+</body>
+</html>
