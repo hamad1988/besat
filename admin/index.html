@@ -77,6 +77,7 @@ button{font:inherit;font-weight:800;border:0;border-radius:10px;padding:13px 18p
 </section>
 
 </main>
+<script src="render.js"></script>
 <script>
 const OWNER='hamad1988', REPO='besat', BRANCH='main';
 const API='https://api.github.com/repos/'+OWNER+'/'+REPO;
@@ -118,20 +119,6 @@ async function loadProducts(){
   try{const s=await headState();products=s.list;renderList()}catch(e){$('list').innerHTML='';const p=document.createElement('p');p.className='hint';p.textContent='تعذر تحميل المنتجات: '+e.message;$('list').append(p)}
 }
 
-/* ---------- homepage section generator ---------- */
-const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-function buildHtml(html,list){
-  const nav=list.length?'<a href="#latest">آخر أعمالنا</a>':'';
-  let sec='';
-  if(list.length){
-    sec='<section class="section works-section" id="latest"><div class="heading"><div><p class="eyebrow">جديدنا</p><h2>آخر أعمالنا</h2></div><p>أحدث المنتجات والأعمال المضافة من بساط للأثاث والمفروشات.</p></div><div class="works">'+
-      list.map(p=>'<figure class="work"><a href="'+esc(p.image)+'" target="_blank" rel="noopener"><img loading="lazy" src="'+esc(p.image)+'" alt="'+esc(p.name)+'" width="'+(p.w||1200)+'" height="'+(p.h||900)+'"></a><figcaption><h3>'+esc(p.name)+'</h3><p>'+esc(p.desc)+'</p></figcaption></figure>').join('')+
-      '</div></section>';
-  }
-  const rep=(h,tag,content)=>{const a='<!--'+tag+':START-->',b='<!--'+tag+':END-->';const i=h.indexOf(a),j=h.indexOf(b);if(i<0||j<0)throw new Error('علامات القسم غير موجودة في index.html');return h.slice(0,i+a.length)+content+h.slice(j)};
-  return rep(rep(html,'LATEST-NAV',nav),'LATEST',sec);
-}
-
 /* ---------- one atomic commit: image + products.json + index.html ---------- */
 async function commit(message,mutate){
   for(let attempt=0;attempt<3;attempt++){
@@ -139,7 +126,8 @@ async function commit(message,mutate){
     const {list,files}=await mutate(s.list);
     const entries=[...files];
     entries.push({path:'products.json',mode:'100644',type:'blob',content:JSON.stringify(list,null,2)+'\n'});
-    entries.push({path:'index.html',mode:'100644',type:'blob',content:buildHtml(s.html,list)});
+    entries.push({path:'index.html',mode:'100644',type:'blob',content:BasatRender.applyHome(s.html,list)});
+    entries.push({path:'sitemap.xml',mode:'100644',type:'blob',content:BasatRender.sitemap(list)});
     const tree=await gh('/git/trees',{method:'POST',body:JSON.stringify({base_tree:s.tree,tree:entries})});
     const c=await gh('/git/commits',{method:'POST',body:JSON.stringify({message,tree:tree.sha,parents:[s.sha]})});
     try{await gh('/git/refs/heads/'+BRANCH,{method:'PATCH',body:JSON.stringify({sha:c.sha})});return list}
@@ -169,12 +157,14 @@ $('form').onsubmit=async e=>{
   try{
     const id=Date.now().toString(36);const path='assets/works/'+id+'.jpg';
     const blob=await gh('/git/blobs',{method:'POST',body:JSON.stringify({content:await toB64(imageBlob.blob),encoding:'base64'})});
-    products=await commit('إضافة منتج: '+name,async list=>({
-      list:[{id,name,desc,image:path,w:imageBlob.w,h:imageBlob.h,date:new Date().toISOString().slice(0,10)},...list.filter(p=>p.id!==id)],
-      files:[{path,mode:'100644',type:'blob',sha:blob.sha}]
-    }));
+    products=await commit('إضافة منتج: '+name,async list=>{
+      const p={id,slug:BasatRender.slugify(name,list.map(x=>x.slug)),name,desc,image:path,w:imageBlob.w,h:imageBlob.h,date:new Date().toISOString().slice(0,10)};
+      return {list:[p,...list.filter(x=>x.id!==id)],files:[
+        {path,mode:'100644',type:'blob',sha:blob.sha},
+        {path:BasatRender.path(p)+'index.html',mode:'100644',type:'blob',content:BasatRender.productPage(p)}]};
+    });
     renderList();$('form').reset();imageBlob=null;$('preview').style.display='none';
-    show($('msg'),'ok','تمت إضافة المنتج ✓ سيظهر في الصفحة الرئيسية خلال دقيقة إلى دقيقتين.');
+    show($('msg'),'ok','تمت إضافة المنتج ✓ أُنشئت صفحته وأُضيف إلى خريطة الموقع، ويظهر في الصفحة الرئيسية خلال دقيقة إلى دقيقتين.');
   }catch(err){show($('msg'),'err','لم تتم الإضافة: '+err.message)}
   finally{$('submit').disabled=false}
 };
@@ -186,10 +176,10 @@ function renderList(){
   products.forEach(p=>{
     const row=document.createElement('div');row.className='item';
     const im=document.createElement('img');im.src='../'+p.image+'?v='+p.id;im.alt='';
-    const d=document.createElement('div');const b=document.createElement('b');b.textContent=p.name;const s=document.createElement('small');s.textContent=p.date||'';d.append(b,s);
+    const d=document.createElement('div');const b=document.createElement('b');b.textContent=p.name;const s=document.createElement('small');s.textContent=(p.sample?'عينة · ':'')+(p.date||'');const l=document.createElement('a');l.href='../'+(p.slug?BasatRender.path(p):'');l.target='_blank';l.textContent=' عرض الصفحة ↗';l.style.cssText='font-size:.8rem;color:#98760d';s.append(l);d.append(b,s);
     const del=document.createElement('button');del.className='danger';del.textContent='حذف';
     del.onclick=async()=>{if(!confirm('حذف «'+p.name+'» من الموقع؟'))return;del.disabled=true;
-      try{products=await commit('حذف منتج: '+p.name,async list=>({list:list.filter(x=>x.id!==p.id),files:[{path:p.image,mode:'100644',type:'blob',sha:null}]}));renderList()}
+      try{products=await commit('حذف منتج: '+p.name,async list=>{const files=[];if(p.slug)files.push({path:BasatRender.path(p)+'index.html',mode:'100644',type:'blob',sha:null});if(String(p.image).indexOf('assets/works/')===0)files.push({path:p.image,mode:'100644',type:'blob',sha:null});return {list:list.filter(x=>x.id!==p.id),files}});renderList()}
       catch(err){alert('تعذر الحذف: '+err.message);del.disabled=false}};
     row.append(im,d,del);box.append(row);
   });
