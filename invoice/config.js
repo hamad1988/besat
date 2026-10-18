@@ -9,7 +9,7 @@ window.INVOICE_CONFIG = {
   site: 'https://besaatkuw.com',
   shop: {
     ar: { name: 'شركة بساط لتنجيد الأثاث والمفروشات', tagline: 'سجاد وموكيت — الكويت', address: 'الضجيج — مجمع علي عبدالوهاب، الكويت' },
-    en: { name: 'Basat Furniture Upholstery & Furnishings Co.', tagline: 'Carpets & moquette — Kuwait', address: 'Al-Dajeej, Ali Abdulwahab Complex, Kuwait' },
+    en: { name: 'Besat Furniture Upholstery & Furnishings Co.', tagline: 'Carpets & moquette — Kuwait', address: 'Al-Dajeej, Ali Abdulwahab Complex, Kuwait' },
     phone: '65061072',
     whatsapp: '96565061072', // صيغة دولية بدون +
     instagram: '', // يُضاف عند توفره، مثل '@basat'
