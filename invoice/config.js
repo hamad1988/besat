@@ -25,7 +25,7 @@ window.INVOICE_CONFIG = {
   // ترقيم المستندات: بادئة + رقم بعدد خانات ثابت. يُعدَّل من الإعدادات أيضًا.
   // version: ارفعه عند تغيير البادئة أو رقم البداية هنا ليُطبَّق على الأجهزة المستخدمة من قبل
   numbering: { version: 1, invoicePrefix: 'BQ04/', invoiceStart: 4739, quotePrefix: 'BQ/', quoteStart: 1, digits: 6 },
-  quoteValidityDays: 14,
+  quoteValidityDays: 90,
   verifyLang: 'en', // لغة صفحة التحقق الافتراضية (ar أو en)
   terms: {
     invoice: {
