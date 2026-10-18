@@ -14,6 +14,7 @@ window.INVOICE_CONFIG = {
     whatsapp: '96565061072', // صيغة دولية بدون +
     instagram: '', // يُضاف عند توفره، مثل '@basat'
     logo: '/brand/icon-512.png',
+    website: 'https://sajjadko.com', // الموقع المكتوب في آخر الفاتورة
   },
   // مستودع GitHub الذي يُرفع إليه المفتاح العام عند تفعيل جهاز
   repo: { owner: 'hamad1988', repo: 'besat', branch: 'main' },

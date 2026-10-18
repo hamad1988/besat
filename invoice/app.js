@@ -543,7 +543,7 @@ function buildSheet() {
         : null),
     h('div', { class: 'sh-terms' }, h('b', { text: D.terms }), h('ol', {}, terms.map((s) => h('li', { text: s })))),
     h('div', { class: 'sh-sign' }, h('div', { text: quote ? D.approveCust : D.signCust }), h('div', { text: D.signShop(S.name) })),
-    h('div', { class: 'sh-foot', text: [S.name, CFG.site.replace('https://', ''), CFG.shop.instagram && `${D.insta} ${CFG.shop.instagram}`].filter(Boolean).join(' · ') })
+    h('div', { class: 'sh-foot', text: [S.name, (CFG.shop.website || CFG.site).replace('https://', ''), CFG.shop.instagram && `${D.insta} ${CFG.shop.instagram}`].filter(Boolean).join(' · ') })
   );
   return sheet;
 }
