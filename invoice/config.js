@@ -24,7 +24,7 @@ window.INVOICE_CONFIG = {
   keyDbName: 'basat-invoice', // مخزن مفتاح التوقيع داخل الجهاز
   // ترقيم المستندات: بادئة + رقم بعدد خانات ثابت. يُعدَّل من الإعدادات أيضًا.
   // version: ارفعه عند تغيير البادئة أو رقم البداية هنا ليُطبَّق على الأجهزة المستخدمة من قبل
-  numbering: { version: 1, invoicePrefix: 'BS/', invoiceStart: 1, quotePrefix: 'BQ/', quoteStart: 1, digits: 6 },
+  numbering: { version: 1, invoicePrefix: 'BQ04/', invoiceStart: 4739, quotePrefix: 'BQ/', quoteStart: 1, digits: 6 },
   quoteValidityDays: 14,
   verifyLang: 'en', // لغة صفحة التحقق الافتراضية (ar أو en)
   terms: {
