@@ -52,7 +52,7 @@
     var wa = 'https://wa.me/' + WA_NUM + '?text=' + encodeURIComponent('مرحباً بساط، أود الاستفسار عن: ' + p.name + '\n' + url);
     var ld = { '@context': 'https://schema.org', '@graph': [
       { '@type': 'WebPage', 'name': p.name, 'url': url, 'description': d, 'inLanguage': 'ar', 'primaryImageOfPage': { '@type': 'ImageObject', 'url': img },
-        'isPartOf': { '@type': 'WebSite', 'name': 'بساط للأثاث والمفروشات', 'url': SITE } },
+        'isPartOf': { '@type': 'WebSite', 'name': 'بساط للأثاث والمفروشات', 'alternateName': 'Besat', 'url': SITE } },
       { '@type': 'BreadcrumbList', 'itemListElement': [
         { '@type': 'ListItem', 'position': 1, 'name': 'الرئيسية', 'item': SITE },
         { '@type': 'ListItem', 'position': 2, 'name': p.name, 'item': url }] }] };
@@ -60,10 +60,10 @@
     return '<!doctype html><html lang="ar" dir="rtl"><head>\n<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">\n' +
       '<title>' + esc(title) + '</title>\n<meta name="description" content="' + esc(d) + '">\n' +
       '<meta name="robots" content="index,follow,max-image-preview:large"><meta name="theme-color" content="#17213f">\n' +
-      '<link rel="icon" href="/assets/logo-basat.jpg"><link rel="canonical" href="' + esc(url) + '">\n' +
-      '<meta property="og:type" content="website"><meta property="og:locale" content="ar_KW"><meta property="og:title" content="' + esc(title) + '"><meta property="og:description" content="' + esc(d) + '"><meta property="og:image" content="' + esc(img) + '"><meta property="og:url" content="' + esc(url) + '">\n' +
+      '<link rel="icon" href="/assets/logo-besat.jpg"><link rel="canonical" href="' + esc(url) + '">\n' +
+      '<meta property="og:type" content="website"><meta property="og:locale" content="ar_KW"><meta property="og:site_name" content="بساط للأثاث والمفروشات | Besat"><meta property="og:title" content="' + esc(title) + '"><meta property="og:description" content="' + esc(d) + '"><meta property="og:image" content="' + esc(img) + '"><meta property="og:url" content="' + esc(url) + '">\n' +
       '<link rel="stylesheet" href="/styles.css"><script type="application/ld+json">' + JSON.stringify(ld).replace(/</g, '\\u003c') + '</script></head>\n' +
-      '<body><header><a class="brand" href="/"><img src="/assets/logo-basat.jpg" alt="أيقونة بساط"><span><b>بساط</b><small>للأثاث والمفروشات</small></span></a><button class="toggle" aria-label="فتح القائمة">☰</button><nav><a href="/">الرئيسية</a><a href="/#services">خدماتنا</a><a href="/#gallery">معرض الصور</a><a href="/#contact">تواصل معنا</a></nav></header>\n' +
+      '<body><header><a class="brand" href="/"><img src="/assets/logo-besat.jpg" alt="أيقونة بساط"><span><b>بساط</b><small>للأثاث والمفروشات</small></span></a><button class="toggle" aria-label="فتح القائمة">☰</button><nav><a href="/">الرئيسية</a><a href="/#services">خدماتنا</a><a href="/#gallery">معرض الصور</a><a href="/#contact">تواصل معنا</a></nav></header>\n' +
       '<main class="section product"><div class="crumbs" role="navigation" aria-label="مسار الصفحة"><a href="/">الرئيسية</a> › <span>' + esc(p.name) + '</span></div>' +
       '<div class="product-grid"><div class="product-media">' + imgs.map(function (src, i) {
         return '<a href="/' + esc(src) + '" target="_blank" rel="noopener"><img src="/' + esc(src) + '" alt="' + esc(p.name) + (i ? ' - صورة ' + (i + 1) : '') + '"' + (i ? ' loading="lazy"' : '') + (i === 0 ? ' width="' + (p.w || 1200) + '" height="' + (p.h || 900) + '"' : '') + '></a>';
